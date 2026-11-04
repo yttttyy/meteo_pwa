@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Метеостанция · десктоп</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:inherit}
+/* ---- токены темы: те же, что в мобильном варианте A ---- */
+.pg.dark{--bg:#0b0c0d;--sf:#141517;--tx:#ededee;--mu:#959aa1;--ln:#2a2c31;--on:#232529;
+ --z0:#3ecf72;--z1:#e8c547;--z2:#f2913d;--z3:#f25a55}
+.pg.light{--bg:#ebebe8;--sf:#fafaf8;--tx:#121212;--mu:#5c5e63;--ln:#d2d2cd;--on:#e4e4e0;
+ --z0:#18803f;--z1:#8a6800;--z2:#b4520b;--z3:#c42e2a}
+.pg{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:900px}
+/* плавная смена темы */
+.pg,.pg *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,box-shadow .45s ease,fill .45s ease,stroke .45s ease}
+.thm .big-ic{transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.pg.light .thm .big-ic{transform:rotate(180deg)}
+.num{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 32px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}
+.stage{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+@media (max-width:1000px){.wrap{padding:16px}.stage,.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.c2,.c3{grid-column:span 1}.c4,.c5,.c6,.c7,.c8,.c12{grid-column:span 2}}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.ttl{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:8px;margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+.dot{width:6px;height:6px;background:var(--z0)}
+/* уровень WiFi палочками, как на телефоне */
+.wifi{display:inline-flex;align-items:flex-end;gap:2px;height:9px;cursor:default;transform:translateY(-1px)}
+.wifi i{display:block;width:3px;background:var(--ln)}
+.wifi i.on{background:var(--tx)}
+.wifi i:nth-child(1){height:3px}.wifi i:nth-child(2){height:5px}.wifi i:nth-child(3){height:7px}.wifi i:nth-child(4){height:9px}
+.clock{font-size:28px;font-weight:500;color:var(--mu)}
+.ic{width:44px;height:44px;border-radius:4px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none}
+.ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic:hover{border-color:var(--mu)}
+.tl{position:relative;overflow:hidden;background:var(--sf);border:1px solid var(--ln);border-radius:4px;padding:18px 20px 16px;display:flex;flex-direction:column;box-sizing:border-box;min-width:0}
+.stripe{position:absolute;left:0;top:0;right:0;height:3px}
+.lbl{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.1em}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
+/* главная плитка */
+.main{min-height:300px;gap:12px}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
+.score{font-size:104px;font-weight:500;line-height:.9}
+.score span{font-size:22px;color:var(--mu);margin-left:6px}
+.emo{font-size:76px;font-weight:700;letter-spacing:-.06em;line-height:1}
+.hint{font-size:18px}
+.scale{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;height:6px;margin-top:auto}
+.scale span{display:block}
+.s3{background:var(--z3)}.s2{background:var(--z2)}.s1{background:var(--z1)}.s0{background:var(--z0)}
+.mk{position:absolute;top:-6px;width:3px;height:18px;background:var(--tx);margin-left:-1px;box-shadow:0 0 0 2px var(--sf)}
+.scl{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-top:6px}
+/* CO2 */
+.co2top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:8px}
+.big{font-size:64px;font-weight:500;line-height:1}
+.tu{font-size:14px;color:var(--mu);margin-left:6px;font-family:system-ui,sans-serif;letter-spacing:0}
+.tst{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.sq{width:8px;height:8px;flex:none}
+.chart{position:relative;flex:1;margin-top:14px;min-height:150px}
+.chart svg{position:absolute;inset:0;width:100%;height:100%}
+.chart .area{opacity:.12}
+.chart polyline{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.chart line{stroke:var(--mu);stroke-width:1;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;opacity:.7}
+.thl{position:absolute;right:0;font-size:11px;color:var(--mu);transform:translateY(-120%);background:var(--sf);padding-left:4px}
+.ax{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-top:6px}
+/* малые плитки */
+.sm{min-height:176px}
+.val{font-size:40px;font-weight:500;line-height:1.05;margin-top:10px}
+.spk{display:block;width:100%;height:34px;margin-top:10px}
+.spk polyline{fill:none;stroke:currentColor;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.spkw{position:relative;margin-top:10px;padding:4px 0}
+.spkw .spk{margin-top:0}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.meter{height:3px;background:var(--ln)}
+.meter span{display:block;height:3px}
+.off{background:transparent;border-style:dashed}
+.off .val,.off .tst{color:var(--mu)}
+/* подсветка */
+.ledrow{display:flex;align-items:center;gap:14px;margin-top:14px}
+/* выбор своего цвета: палитра + системная пипетка */
+.pal{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pal button{width:28px;height:28px;border-radius:4px;border:1px solid var(--ln);padding:0;cursor:pointer;box-sizing:border-box}
+.pal button.on{box-shadow:0 0 0 2px var(--sf),0 0 0 4px var(--tx)}
+.swi-w{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu);cursor:pointer;margin-left:4px}
+.swi{width:28px;height:28px;padding:0;border:1px dashed var(--mu);border-radius:4px;background:none;cursor:pointer}
+.swi::-webkit-color-swatch-wrapper{padding:2px}.swi::-webkit-color-swatch{border:0;border-radius:2px}.swi::-moz-color-swatch{border:0;border-radius:2px}
+.rsp{margin-top:14px}
+/* подсказка при наведении на график */
+.hov{cursor:crosshair;touch-action:pan-y}
+.xh{position:absolute;top:0;bottom:0;width:1px;background:var(--mu);opacity:.6;pointer-events:none}
+.xd{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:currentColor;box-shadow:0 0 0 2px var(--sf);pointer-events:none}
+.xt{position:absolute;top:-6px;transform:translate(-50%,-100%);background:var(--tx);color:var(--bg);font:600 12px ui-monospace,Menlo,Consolas,monospace;padding:4px 8px;border-radius:3px;white-space:nowrap;pointer-events:none;z-index:2}
+.xt i{font-style:normal;font-weight:400;opacity:.7;margin-left:6px}
+.sw{width:44px;height:44px;flex:none;border-radius:2px}
+.lm{font-size:17px;font-weight:600}
+.ls{font-size:13px;color:var(--mu);margin-top:2px}
+.seg{display:flex;border:1px solid var(--ln);border-radius:4px;overflow:hidden}
+.seg button{flex:1;height:40px;border:0;background:transparent;color:var(--mu);font:600 13px system-ui,sans-serif;cursor:pointer;padding:0 10px}
+.seg button+button{border-left:1px solid var(--ln)}
+.seg button.on{background:var(--on);color:var(--tx)}
+/* графики */
+.gl{display:flex;flex-direction:column;margin-top:10px}
+.gr{display:grid;grid-template-columns:96px minmax(0,1fr) 72px;align-items:center;gap:12px;height:34px;border-bottom:1px solid var(--ln)}
+.gr:last-child{border-bottom:0}
+.gn{font-size:13px;color:var(--mu)}
+.gs{display:block;width:100%;height:22px}
+.gs polyline{fill:none;stroke:currentColor;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.gv{text-align:right;font-size:14px}
+.more{margin-top:auto;padding-top:10px;font-size:13px;font-weight:600;color:var(--tx);text-decoration:none}
+.more:hover{text-decoration:underline}
+/* плитки-кнопки */
+.nav{font:inherit;color:var(--tx);text-align:left;text-decoration:none;cursor:pointer;min-height:176px}
+.nav:hover{border-color:var(--mu)}
+.nav:focus-visible{outline:2px solid var(--mu);outline-offset:2px}
+.big-ic{width:44px;height:44px;margin-top:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.nt{margin-top:auto;font-size:13px;color:var(--mu);line-height:1.35}
+/* квадратные плитки-кнопки: иконка по центру */
+.sqt{aspect-ratio:1/1;align-self:start;min-height:0}
+/* экран графиков */
+.gbig{font-size:44px;font-weight:500;line-height:1}
+.gch{min-height:170px}
+.nod{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:1px dashed var(--ln);border-radius:4px;font-size:13px;color:var(--mu)}
+.hide{visibility:hidden}
+/* шестерёнка: поворот перед раскрытием и обратно при сворачивании */
+.gear .gear-ic,.ghost .gear-ic{transition:transform var(--spin,250ms) cubic-bezier(.4,0,.2,1)}
+.gear.spin .gear-ic,.ghost .gear-ic{transform:rotate(180deg)}
+.sheet.shrink .ghost .gear-ic{transform:rotate(0deg)}
+/* иконка графиков: оси стоят, линия делает полный оборот вокруг своего центра */
+.grt .ln-ic,.ghost .ln-ic{transform-box:fill-box;transform-origin:center;transition:transform var(--spin,250ms) cubic-bezier(.4,0,.2,1)}
+.grt.spin .ln-ic,.ghost .ln-ic{transform:rotate(360deg)}
+.sheet.shrink .ghost .ln-ic{transform:rotate(0deg)}
+/* ---- раскрывающаяся плитка настроек ---- */
+.sheet{position:absolute;z-index:5;box-sizing:border-box;background:var(--sf);border:1px solid var(--ln);border-radius:4px;overflow:hidden;
+ transition:top .5s cubic-bezier(.2,.8,.2,1),left .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s ease,background-color .45s ease,border-color .45s ease}
+.sheet.grow,.sheet.open,.sheet.fade{box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.sheet.open{overflow-y:auto}
+.ghost{position:absolute;left:0;top:0;box-sizing:border-box;padding:18px 20px 16px;display:flex;flex-direction:column;opacity:1;transition:opacity .2s ease;pointer-events:none}
+.sheet.grow .ghost,.sheet.open .ghost,.sheet.fade .ghost{opacity:0}
+.sc{opacity:0;transition:opacity .3s ease;padding:18px 20px 24px;display:flex;flex-direction:column;gap:16px;min-width:880px}
+.sheet.open .sc{opacity:1}
+@media (max-width:1000px){.sc{min-width:0}}
+.shd{display:flex;align-items:center;gap:14px}
+.sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;align-items:start}
+.sgrid .tl{background:var(--bg);gap:12px}
+.shint{font-size:13px;color:var(--mu);line-height:1.45}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--ln);font-size:14px}
+.row:last-child{border-bottom:0}
+.row .smt{color:var(--mu);font-size:12px;margin-left:6px}
+.row .v{color:var(--mu);font-size:13px;text-align:right}
+.bd{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.ok{color:var(--z0)}.wr{color:var(--z1)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{height:40px;padding:0 14px;border:1px solid var(--ln);border-radius:4px;background:var(--sf);color:var(--tx);font:600 13px system-ui,sans-serif;cursor:pointer}
+.btn:hover{border-color:var(--mu)}
+.btn.pri{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.btn.dng{color:var(--z3);border-color:var(--z3)}
+.inp{height:40px;box-sizing:border-box;border:1px solid var(--ln);border-radius:4px;background:var(--sf);color:var(--tx);padding:0 10px;font:14px system-ui,sans-serif;min-width:0}
+.thr{display:grid;grid-template-columns:140px repeat(4,minmax(0,1fr));gap:10px;align-items:end;padding:9px 0;border-bottom:1px solid var(--ln)}
+.thr:last-child{border-bottom:0}
+.thn{font-size:14px;font-weight:600;padding-bottom:10px}
+.thn span{display:block;font-size:11px;color:var(--mu);font-weight:500;margin-top:2px}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mu)}
+.fld .inp{width:100%;font-family:ui-monospace,Menlo,Consolas,monospace}
+.sl{display:grid;grid-template-columns:130px minmax(0,1fr) 60px;align-items:center;gap:12px;font-size:13px}
+.sl input{width:100%;accent-color:var(--tx);margin:0}
+.sl .num{text-align:right}
+.nets{display:flex;flex-direction:column;gap:6px}
+.net{display:flex;justify-content:space-between;align-items:center;height:38px;padding:0 12px;border:1px solid var(--ln);border-radius:4px;background:var(--sf);color:var(--tx);font:14px system-ui,sans-serif;cursor:pointer}
+.net span{color:var(--mu);font-size:12px}
+.wf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px}
+.clk{font-size:48px;font-weight:700;text-align:center;padding:8px 0;border:1px solid var(--ln);border-radius:4px;background:var(--sf);line-height:1.1}
+.clk.f0{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:-.04em;transform:skewX(-6deg)}
+.clk.f1{font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif;letter-spacing:-.02em}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--sf);border:1px solid var(--ln);padding:1px 5px;border-radius:2px}
+@media (prefers-reduced-motion:reduce){.pg,.pg *,.sheet,.ghost,.sc,.thm .big-ic,.gear .gear-ic,.ghost .gear-ic,.grt .ln-ic,.ghost .ln-ic{transition:none}}
+/* демо-панель: только в макете */
+.demo{border:1px dashed var(--ln);border-radius:4px;padding:10px 16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;color:var(--mu);font-size:12px}
+.demo b{font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.dsl{display:flex;align-items:center;gap:10px}
+.dsl input{width:200px;accent-color:var(--z0);margin:0}
+.dsl span{min-width:64px;color:var(--tx)}
+</style>
+</helmet>
+<div class="pg {{theme}}" style="--spin: {{spinMs}}ms">
+<div class="wrap">
+
+<div class="bar">
+<div><div class="ttl">Метеостанция</div><div class="sub"><span class="dot"></span>онлайн · <span class="wifi" role="img" aria-label="{{wifiLbl}}" title="{{wifiLbl}}"><i class="{{wb1}}"></i><i class="{{wb2}}"></i><i class="{{wb3}}"></i><i class="{{wb4}}"></i></span> · обновлено 15 с назад</div></div>
+<div class="clock num">21:35</div>
+</div>
+
+<div class="stage">
+
+<div class="c5 tl main">
+<div class="hd"><span class="lbl">Климат в комнате</span><span class="lbl" style="color: {{mainAcc}}">{{face}}</span></div>
+<div class="mrow" style="color: {{mainAcc}}"><div class="score num">{{score}}<span>/100</span></div><div class="emo num">{{emo}}</div></div>
+<div class="hint">{{hint}}</div>
+<div>
+<div class="scale"><span class="s3"></span><span class="s2"></span><span class="s1"></span><span class="s0"></span><span class="mk" style="left: {{mk}}"></span></div>
+<div class="scl"><span>0 · плохо</span><span>100 · отлично</span></div>
+</div>
+</div>
+
+<div class="c7 tl">
+<div class="stripe" style="background: {{co2.acc}}"></div>
+<div class="hd"><span class="lbl">CO₂ · MH-Z19C · 3 часа</span><span class="tst"><span class="sq" style="background: {{co2.acc}}"></span>{{co2.st}}</span></div>
+<div class="co2top"><div class="big num" style="color: {{co2.acc}}">{{co2.val}}<span class="tu">ppm</span></div><div class="lbl">мин {{co2.mn}} · макс {{co2.mx}}</div></div>
+<div class="chart hov" style="color: {{co2.acc}}" onPointerMove="{{co2.onMove}}" onPointerLeave="{{co2.onLeave}}">
+<svg viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="600" y1="97.5" y2="97.5"></line><line x1="0" x2="600" y1="53.8" y2="53.8"></line><polygon class="area" points="{{co2.area}}" style="fill: currentColor"></polygon><polyline points="{{co2.line}}"></polyline></svg>
+<span class="thl" style="top: 61%">1000</span><span class="thl" style="top: 34%">1500</span>
+<sc-if value="{{co2.hShow}}" hint-placeholder-val="{{ false }}"><span class="xh" style="left: {{co2.hx}}"></span><span class="xd" style="left: {{co2.hx}}; top: {{co2.hy}}"></span><span class="xt" style="left: {{co2.tx}}">{{co2.hv}}<i>{{co2.ht}}</i></span></sc-if>
+</div>
+<div class="ax"><span>−3 ч</span><span>−2 ч</span><span>−1 ч</span><span>сейчас</span></div>
+</div>
+
+<sc-for list="{{tiles}}" as="it" hint-placeholder-count="5">
+<div class="{{it.cls}}">
+<div class="stripe" style="background: {{it.acc}}"></div>
+<span class="lbl">{{it.name}}</span>
+<div class="val num" style="color: {{it.vc}}">{{it.val}}<span class="tu">{{it.unit}}</span></div>
+<sc-if value="{{it.hasSpark}}" hint-placeholder-val="{{ false }}"><div class="spkw hov" style="color: {{it.acc}}" onPointerMove="{{it.onMove}}" onPointerLeave="{{it.onLeave}}"><svg class="spk" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{it.spark}}"></polyline></svg><sc-if value="{{it.hShow}}" hint-placeholder-val="{{ false }}"><span class="xh" style="left: {{it.hx}}"></span><span class="xd" style="left: {{it.hx}}; top: {{it.hy}}"></span><span class="xt" style="left: {{it.tx}}">{{it.hv}}<i>{{it.ht}}</i></span></sc-if></div></sc-if>
+<div class="foot"><span class="tst"><span class="sq" style="background: {{it.acc}}"></span>{{it.st}}</span><div class="meter"><span style="width: {{it.bw}}; background: {{it.acc}}"></span></div></div>
+</div>
+</sc-for>
+
+<div class="c6 tl">
+<span class="lbl">Подсветка</span>
+<div class="ledrow"><span class="sw" style="background: {{ledBg}}"></span><div><div class="lm">{{ledName}}</div><div class="ls">{{ledSub}}</div></div></div>
+<sc-if value="{{isMan}}" hint-placeholder-val="{{ false }}">
+<div class="pal" role="group" aria-label="Цвет подсветки">
+<sc-for list="{{swatches}}" as="w" hint-placeholder-count="9"><button class="{{w.cls}}" style="background: {{w.c}}" onClick="{{w.pick}}" aria-label="{{w.name}}"></button></sc-for>
+<label class="swi-w" title="Любой цвет"><input class="swi" type="color" value="{{manColor}}" onChange="{{onMan}}" aria-label="Выбрать любой цвет"><span>любой</span></label>
+</div>
+</sc-if>
+<sc-if value="{{isRnb}}" hint-placeholder-val="{{ false }}">
+<label class="dsl rsp" for="rsp">Скорость<input id="rsp" type="range" min="1" max="50" step="1" value="{{rspd}}" onChange="{{onRspd}}"><span>{{rspd}}</span></label>
+</sc-if>
+<div class="seg" style="margin-top: auto">
+<button class="{{ledA}}" onClick="{{setAuto}}">Авто (CO₂)</button><button class="{{ledM}}" onClick="{{setMan}}">Свой цвет</button><button class="{{ledR}}" onClick="{{setRnb}}">Радуга</button>
+</div>
+</div>
+
+<button class="{{grCls}}" onClick="{{openGr}}" aria-label="Открыть графики" aria-expanded="{{grOpen}}">
+<span class="lbl">Графики</span>
+<svg class="big-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path class="ln-ic" d="M7 15l4-4 3 3 6-7"></path></svg>
+<span class="nt">все датчики и климат</span>
+</button>
+
+<button class="c2 tl nav sqt thm" onClick="{{toggleTheme}}" aria-label="Сменить тему">
+<span class="lbl">Тема</span>
+<svg class="big-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 0 0 18z" style="fill: currentColor"></path></svg>
+<span class="nt">{{themeName}}</span>
+</button>
+
+<button class="{{setCls}}" onClick="{{openSet}}" aria-label="Открыть настройки" aria-expanded="{{setOpen}}">
+<span class="lbl">Настройки</span>
+<svg class="big-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+<span class="nt">WiFi, пороги, OTA</span>
+</button>
+
+<sc-if value="{{shOn}}" hint-placeholder-val="{{ false }}">
+<div class="sheet {{sh.cls}}" style="top: {{sh.top}}; left: {{sh.left}}; width: {{sh.w}}; height: {{sh.h}}" role="dialog" aria-label="{{sh.title}}">
+
+<div class="ghost" style="width: {{sh.gw}}; height: {{sh.gh}}">
+<span class="lbl">{{sh.title}}</span>
+<sc-if value="{{isSet}}" hint-placeholder-val="{{ true }}"><svg class="big-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg></sc-if>
+<sc-if value="{{isGr}}" hint-placeholder-val="{{ false }}"><svg class="big-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path class="ln-ic" d="M7 15l4-4 3 3 6-7"></path></svg></sc-if>
+<span class="nt">{{sh.cap}}</span>
+</div>
+
+<sc-if value="{{isSet}}" hint-placeholder-val="{{ true }}">
+<div class="sc">
+<div class="shd">
+<button class="ic" onClick="{{closeSheet}}" aria-label="Закрыть настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+<div><div class="ttl">Настройки</div><div class="sub">прошивка v2.4 · изменения сохраняются сразу</div></div>
+</div>
+
+<div class="sgrid">
+
+<div class="c4 tl">
+<div class="hd"><span class="lbl">Датчики</span><span class="lbl">3 из 4 в норме</span></div>
+<div>
+<div class="row"><span>AHT21<span class="smt">t°, влажность</span></span><span class="bd ok">ОК</span></div>
+<div class="row"><span>ENS160<span class="smt">AQI, TVOC, eCO₂</span></span><span class="bd wr">eCO₂ молчит</span></div>
+<div class="row"><span>MH-Z19C<span class="smt">CO₂</span></span><span class="bd ok">ОК</span></div>
+<div class="row"><span>DS3231<span class="smt">часы</span></span><span class="bd ok">ОК</span></div>
+<div class="row"><span>Фоторезистор</span><span class="v num">ADC 2310 · 56%</span></div>
+</div>
+</div>
+
+<div class="c4 tl">
+<span class="lbl">Связь и система</span>
+<div>
+<div class="row"><span>WiFi</span><span class="v">Home_5G · 192.168.1.42</span></div>
+<div class="row"><span>Время</span><span class="v">синхр. · RTC</span></div>
+<div class="row"><span>Аптайм</span><span class="v num">3 д 4 ч 12 мин</span></div>
+<div class="row"><span>Свободная RAM</span><span class="v num">142 КБ</span></div>
+<div class="row"><span>Прошивка</span><span class="v num">v2.4</span></div>
+</div>
+</div>
+
+<div class="c4 tl">
+<span class="lbl">WiFi</span>
+<div class="row" style="padding-top: 0"><span>Home_5G<span class="smt">−58 dBm</span></span><span class="bd ok">онлайн</span></div>
+<div class="btns"><button class="btn" onClick="{{toggleWifi}}">{{wifiBtn}}</button><button class="btn dng">Забыть сеть</button></div>
+<sc-if value="{{wifiOpen}}" hint-placeholder-val="{{ false }}">
+<div class="nets">
+<sc-for list="{{nets}}" as="n" hint-placeholder-count="4"><button class="net" onClick="{{n.pick}}">{{n.ssid}}<span>{{n.sec}} · {{n.rssi}} dBm</span></button></sc-for>
+</div>
+<div class="wf"><input class="inp" type="text" placeholder="SSID" aria-label="Имя сети" value="{{ssid}}" onChange="{{onSsid}}"><input class="inp" type="password" placeholder="Пароль" aria-label="Пароль"><button class="btn pri">Подключить</button></div>
+</sc-if>
+<div class="shint">Без сети станция поднимет точку <code>Meteo-Setup</code> с этой же страницей.</div>
+</div>
+
+<div class="c7 tl">
+<div class="hd"><span class="lbl">Пороги зон</span><button class="btn" onClick="{{resetThr}}">Сбросить</button></div>
+<div>
+<sc-for list="{{thr}}" as="r" hint-placeholder-count="5">
+<div class="thr">
+<div class="thn">{{r.name}}<span>{{r.note}}</span></div>
+<sc-for list="{{r.f}}" as="f" hint-placeholder-count="4">
+<label class="fld">{{f.label}}<sc-if value="{{f.show}}" hint-placeholder-val="{{ true }}"><input class="inp" type="number" value="{{f.v}}" onChange="{{f.on}}"></sc-if></label>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<div class="shint">Хранятся в браузере (localStorage). Плитки сразу перекрашиваются по новым границам.</div>
+</div>
+
+<div class="c5 tl">
+<span class="lbl">Поправки датчиков</span>
+<label class="sl" for="so1">Температура<input id="so1" type="range" min="-10" max="10" step="0.1" value="{{toff}}" onChange="{{onToff}}"><span class="num">{{toffS}}</span></label>
+<label class="sl" for="so2">Влажность<input id="so2" type="range" min="-30" max="30" step="1" value="{{hoff}}" onChange="{{onHoff}}"><span class="num">{{hoffS}}</span></label>
+<label class="sl" for="so3">Тревога CO₂<input id="so3" type="range" min="800" max="3000" step="50" value="{{co2al}}" onChange="{{onAl}}"><span class="num">{{co2al}}</span></label>
+<div class="shint">Поправки прибавляются к сырым показаниям AHT21. Выше порога тревоги подсветка пульсирует красным.</div>
+<div style="border-top: 1px solid var(--ln); padding-top: 12px; display: flex; flex-direction: column; gap: 10px">
+<span class="lbl">Калибровка нуля CO₂</span>
+<div class="btns"><button class="btn">Калибровать как 400 ppm</button><span class="shint">сейчас {{co2v}} ppm</span></div>
+<div class="shint">Только на свежем воздухе после 20+ минут работы датчика.</div>
+</div>
+</div>
+
+<div class="c3 tl">
+<span class="lbl">Шрифт часов</span>
+<div class="clk {{clkCls}}">21:35</div>
+<div class="seg"><button class="{{f0}}" onClick="{{setF0}}">Палки</button><button class="{{f1}}" onClick="{{setF1}}">Скруглённый</button></div>
+</div>
+
+<div class="c4 tl">
+<span class="lbl">Экспорт истории</span>
+<div class="seg"><sc-for list="{{exp}}" as="e" hint-placeholder-count="4"><button class="{{e.cls}}" onClick="{{e.pick}}">{{e.label}}</button></sc-for></div>
+<div class="btns"><button class="btn pri">Скачать CSV · {{expLabel}}</button></div>
+<div class="shint">Колонки <code>ts, iso, temp, hum, co2, eco2, aqi, tvoc</code>.</div>
+</div>
+
+<div class="c5 tl">
+<span class="lbl">Прошивка и перезагрузка</span>
+<div class="btns">
+<input class="inp" type="file" accept=".bin" aria-label="Файл прошивки .bin" style="flex: 1; padding-top: 8px">
+<button class="btn pri">Прошить OTA</button>
+<button class="btn dng">Перезагрузить</button>
+</div>
+<div class="shint">Arduino IDE: Скетч → Экспорт скомпилированного бинарного файла, залить .bin сюда — без USB.</div>
+</div>
+
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isGr}}" hint-placeholder-val="{{ false }}">
+<div class="sc">
+<div class="shd">
+<button class="ic" onClick="{{closeSheet}}" aria-label="Закрыть графики"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+<div><div class="ttl">Графики</div><div class="sub">все датчики · точка раз в минуту</div></div>
+<div class="seg" style="margin-left: auto; min-width: 380px">
+<sc-for list="{{ranges}}" as="r" hint-placeholder-count="4"><button class="{{r.cls}}" onClick="{{r.pick}}">{{r.label}}</button></sc-for>
+</div>
+</div>
+<div class="sgrid">
+<sc-for list="{{charts}}" as="c" hint-placeholder-count="7">
+<div class="{{c.cls}}">
+<div class="hd"><span class="lbl">{{c.name}}</span><span class="tst" style="color: {{c.acc}}">{{c.st}}</span></div>
+<div class="co2top"><div class="gbig num" style="color: {{c.vc}}">{{c.val}}<span class="tu">{{c.unit}}</span></div><div class="lbl">{{c.stats}}</div></div>
+<div class="chart gch hov" style="color: {{c.acc}}" onPointerMove="{{c.onMove}}" onPointerLeave="{{c.onLeave}}">
+<sc-if value="{{c.has}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="600" y1="{{c.y1}}" y2="{{c.y1}}"></line><line x1="0" x2="600" y1="{{c.y2}}" y2="{{c.y2}}"></line><polygon class="area" points="{{c.area}}" style="fill: currentColor"></polygon><polyline points="{{c.line}}"></polyline></svg>
+<span class="thl" style="top: {{c.p1}}">{{c.t1}}</span><span class="thl" style="top: {{c.p2}}">{{c.t2}}</span>
+<sc-if value="{{c.hShow}}" hint-placeholder-val="{{ false }}"><span class="xh" style="left: {{c.hx}}"></span><span class="xd" style="left: {{c.hx}}; top: {{c.hy}}"></span><span class="xt" style="left: {{c.tx}}">{{c.hv}}<i>{{c.ht}}</i></span></sc-if>
+</sc-if>
+<sc-if value="{{c.none}}" hint-placeholder-val="{{ false }}"><div class="nod">Нет данных — датчик не отвечает</div></sc-if>
+</div>
+<div class="ax"><span>{{c.ax0}}</span><span>{{c.ax1}}</span><span>сейчас</span></div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+</div>
+</sc-if>
+
+</div>
+
+<div class="demo">
+<b>Демо (только в макете)</b>
+<label class="dsl" for="drs">WiFi<input id="drs" type="range" min="-95" max="-40" step="1" value="{{rssi}}" onChange="{{onRssi}}"><span>{{rssi}} dBm</span></label>
+<label class="dsl" for="dsp">Поворот иконок<input id="dsp" type="range" min="100" max="900" step="25" value="{{spinMs}}" onChange="{{onSpin}}"><span>{{spinMs}} мс</span></label>
+<label class="dsl" for="dc">CO₂<input id="dc" type="range" min="400" max="2500" step="10" value="{{co2v}}" onChange="{{onCo2}}"><span>{{co2v}} ppm</span></label>
+<label class="dsl" for="dh">Влажность<input id="dh" type="range" min="20" max="80" step="1" value="{{humv}}" onChange="{{onHum}}"><span>{{humv}} %</span></label>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+function pw(v,s){if(v<=s[0][0])return s[0][1];for(var i=1;i<s.length;i++){if(v<=s[i][0]){var a=s[i-1],b=s[i];return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0]);}}return s[s.length-1][1];}
+function hx(h){return [1,3,5].map(function(i){return parseInt(h.substr(i,2),16);});}
+function mix(st,t){t=Math.max(0,Math.min(1,t));var n=st.length-1,f=t*n,i=Math.min(n-1,Math.floor(f)),u=f-i,a=hx(st[i]),b=hx(st[i+1]);return 'rgb('+a.map(function(x,k){return Math.round(x+(b[k]-x)*u);}).join(',')+')';}
+function clamp(x){return Math.max(0,Math.min(1,x));}
+function spark(a){var mn=Math.min.apply(null,a),mx=Math.max.apply(null,a),r=(mx-mn)||1;return a.map(function(v,i){return (i*100/(a.length-1)).toFixed(1)+','+(27-(v-mn)/r*24).toFixed(1);}).join(' ');}
+function model(co2,hum){
+var temp=22.4,tvoc=140,aqi=2;
+var t={co2:pw(co2,[[600,0],[800,.25],[1000,.45],[1500,.75],[2000,1]]),
+hum:Math.min(1,(hum<40?40-hum:hum>60?hum-60:0)/20),
+temp:Math.min(1,(temp<20?20-temp:temp>24?temp-24:0)/4),
+tvoc:pw(tvoc,[[0,0],[220,.25],[660,.5],[2200,1]]),
+aqi:pw(aqi,[[1,0],[2,.15],[3,.5],[4,.8],[5,1]])};
+var W={co2:.45,hum:.2,temp:.2,tvoc:.1,aqi:.05},s=0,mx=0,worst='co2';
+for(var k in W){s+=W[k]*t[k];if(t[k]>mx){mx=t[k];worst=k;}}
+var score=Math.max(0,Math.round(Math.min(100*(1-s),100-80*mx)));
+var face=score>=85?'Отлично':score>=70?'Хорошо':score>=50?'Так себе':score>=30?'Плохо':'Очень плохо';
+var emo=score>=85?'(^-^)':score>=70?'(^_^)':score>=50?'(-_-)':score>=30?'(>_<)':'(x_x)';
+var hint='Воздух в порядке';
+if(mx>=.2){if(worst==='co2')hint=co2>=1500?'Очень душно — срочно проветрите':'Душновато — проветрите';else if(worst==='hum')hint=hum<40?'Сухо — включите увлажнитель':'Сыро — проветрите';else if(worst==='tvoc')hint='Много летучих веществ — проветрите';}
+var pts=[];for(var i=0;i<36;i++){var x=i/35;pts.push(i===35?co2:Math.round(400+(co2-400)*(.5+.5*Math.pow(x,1.2))+22*Math.sin(i*1.7)));}
+function y(v){return (150-clamp((v-400)/1600)*140).toFixed(1);}
+var line=pts.map(function(v,i){return (i*600/35).toFixed(1)+','+y(v);}).join(' ');
+var th=[21.6,21.7,21.7,21.9,22.0,22.1,22.0,22.2,22.3,22.3,22.4,22.4];
+var hh=[6,6,5,5,4,4,3,2,2,1,0,0].map(function(d){return hum+d;});
+var tiles=[
+{id:'temp',name:'Температура',unit:'°C',val:temp.toFixed(1),t:t.temp,st:'Комфорт',spark:spark(th),pts:th,dec:1,hasSpark:true,cls:'c3'},
+{id:'hum',name:'Влажность',unit:'%',val:String(hum),t:t.hum,st:hum<30?'Сухо':hum<40?'Суховато':hum<=60?'Комфорт':hum<=70?'Влажновато':'Сыро',spark:spark(hh),pts:hh,dec:0,hasSpark:true,cls:'c3'},
+{id:'tvoc',name:'TVOC',unit:'ppb',val:'140',t:t.tvoc,st:'Хорошо',hasSpark:false,spark:'',cls:'c2'},
+{id:'aqi',name:'AQI',unit:'из 5',val:'2',t:t.aqi,st:'Хорошо',hasSpark:false,spark:'',cls:'c2'},
+{id:'eco2',name:'eCO₂',unit:'ppm',val:'--',t:0,st:'Датчик недоступен',off:true,hasSpark:false,spark:'',cls:'c2'}];
+return {score:score,face:face,emo:emo,hint:hint,ts:clamp((90-score)/70),tco2:t.co2,tiles:tiles,
+co2:{val:String(co2),t:t.co2,st:co2<800?'Отлично':co2<1000?'Норма':co2<1500?'Повышен':'Плохо',line:line,area:'0,160 '+line+' 600,160',pts:pts,mn:Math.min.apply(null,pts),mx:Math.max.apply(null,pts)}};
+}
+// цвета зон дублируют переменные --z0..--z3 из CSS
+var P={dark:{z:['#3ecf72','#e8c547','#f2913d','#f25a55'],mu:'#5d6168'},
+light:{z:['#18803f','#8a6800','#b4520b','#c42e2a'],mu:'#a3a5a8'}};
+var LED=['#22c55e','#eab308','#f97316','#ef4444'];
+// палитра «своего цвета»: быстрые варианты, остальное — через системную пипетку
+var SW=[['#ff4d4d','красный'],['#ff9f43','оранжевый'],['#ffd24d','жёлтый'],['#4dd27a','зелёный'],['#2ec5c5','бирюзовый'],['#50a0ff','синий'],['#8a6bff','фиолетовый'],['#ff6bd6','розовый'],['#ffffff','белый']];
+var RNG=[['h','Час'],['3h','3 часа'],['day','День'],['week','Неделя']];
+function series(ri,end,fn){var a=[],f=.9+ri*.6;for(var i=0;i<24;i++)a.push(i===23?end:fn(i/23,i,f));return a;}
+// настройки
+var THR=[
+{id:'co2',name:'CO₂, ppm',note:'выше — «плохо»',f:[['отлично до',800],['норма до',1000],['повышен до',1500]]},
+{id:'tvoc',name:'TVOC, ppb',note:'ENS160',f:[['хорошо до',220],['умеренно до',660],['плохо до',2200]]},
+{id:'temp',name:'Температура, °C',note:'двусторонняя',f:[['комфорт от',20],['комфорт до',24],['допуст. от',18],['допуст. до',26]]},
+{id:'hum',name:'Влажность, %',note:'двусторонняя',f:[['комфорт от',40],['комфорт до',60],['допуст. от',30],['допуст. до',70]]},
+{id:'aqi',name:'AQI, 1–5',note:'ENS160',f:[['хорошо до',2],['умеренно до',3]]}];
+var NETS=[{ssid:'Home_5G',sec:'закрытая',rssi:-58},{ssid:'Home_2.4',sec:'закрытая',rssi:-63},{ssid:'Neighbor-Wifi',sec:'закрытая',rssi:-79},{ssid:'Cafe_Free',sec:'открытая',rssi:-84}];
+var EXP=[['h','Час'],['3h','3 часа'],['day','День'],['week','Неделя']];
+// экран графиков: 48 точек на диапазон, последняя = текущее значение (мок)
+var RAX=[['−60 мин','−30 мин'],['−3 ч','−1.5 ч'],['−24 ч','−12 ч'],['−7 д','−3.5 д']];
+function series48(ri,end,fn){var a=[],f=.5+ri*.35;for(var i=0;i<48;i++)a.push(i===47?end:fn(i/47,i,f));return a;}
+function fmt(v,d){return (+v).toFixed(d);}
+// наведение на график: ближайшая точка, вертикальная линия, значение и время
+var NOW=new Date(2026,9,25,21,35),MIN=[60,180,1440,10080];
+function tlabel(minAgo,total){var d=new Date(NOW.getTime()-minAgo*60000),hh=('0'+d.getHours()).slice(-2),mm=('0'+d.getMinutes()).slice(-2);
+return total>1440?('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+' '+hh+':00':hh+':'+mm;}
+function hover(key,pts,total,yf,dec,unit,hv,self,H,cl){H=H||160;cl=cl||8;
+var n=pts.length,on=!!(hv&&hv.k===key),i=on?Math.max(0,Math.min(n-1,hv.i)):0,x=i/(n-1)*100;
+return {onMove:function(e){var r=e.currentTarget.getBoundingClientRect(),j=Math.max(0,Math.min(n-1,Math.round((e.clientX-r.left)/r.width*(n-1))));
+var cur=self.state&&self.state.hv;if(!cur||cur.k!==key||cur.i!==j)self.setState({hv:{k:key,i:j}});},
+onLeave:function(){self.setState({hv:null});},
+hShow:on,hx:x.toFixed(2)+'%',hy:(yf(pts[i])/H*100).toFixed(2)+'%',tx:Math.max(cl,Math.min(100-cl,x)).toFixed(2)+'%',
+hv:on?fmt(pts[i],dec)+' '+unit:'',ht:on?tlabel((n-1-i)*total/(n-1),total):''};}
+function chart(o,ri,p,hv,self){
+var ax=RAX[ri]||RAX[1];
+if(o.off)return {cls:'c6 tl off',name:o.name,unit:o.unit,val:'--',st:'Датчик недоступен',acc:p.mu,vc:'var(--mu)',stats:'нет данных',has:false,none:true,ax0:ax[0],ax1:ax[1],line:'',area:'',y1:-20,y2:-20,p1:'-20%',p2:'-20%',t1:'',t2:''};
+var pts=series48(ri,o.end,o.fn),lo=o.dom[0],hi=o.dom[1];
+function y(v){return 150-clamp((v-lo)/(hi-lo))*140;}
+var line=pts.map(function(v,i){return (i*600/47).toFixed(1)+','+y(v).toFixed(1);}).join(' ');
+var mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),avg=pts.reduce(function(a,b){return a+b;},0)/pts.length;
+var y1=y(o.th[0]),y2=o.th[1]!=null?y(o.th[1]):-20;
+var acc=mix(p.z,o.t);
+var h=hover(o.name,pts,MIN[ri]||180,y,o.dec,o.unit,hv,self);
+return {onMove:h.onMove,onLeave:h.onLeave,hShow:h.hShow,hx:h.hx,hy:h.hy,tx:h.tx,hv:h.hv,ht:h.ht,cls:o.cls,name:o.name,unit:o.unit,val:fmt(o.end,o.dec),st:o.st,acc:acc,vc:acc,
+stats:'мин '+fmt(mn,o.dec)+' · ср '+fmt(avg,o.dec)+' · макс '+fmt(mx,o.dec),has:true,none:false,ax0:ax[0],ax1:ax[1],
+line:line,area:'0,160 '+line+' 600,160',y1:y1.toFixed(1),y2:(+y2).toFixed(1),p1:(y1/160*100).toFixed(1)+'%',p2:(y2/160*100).toFixed(1)+'%',
+t1:o.tl[0],t2:o.tl[1]||''};}
+function charts(ri,p,m,co2,hum,hv,self){
+var tt=m.tiles;
+return [
+chart({cls:'c12 tl',name:'Климат в комнате · общий балл',unit:'/100',end:m.score,dec:0,t:m.ts,st:m.face+' '+m.emo,dom:[0,100],th:[50,85],tl:['50','85'],
+fn:function(x,i,f){return clamp((m.score+28*(1-x)+5*Math.sin(i*f))/100)*100;}},ri,p,hv,self),
+chart({cls:'c6 tl',name:'CO₂ · MH-Z19C',unit:'ppm',end:co2,dec:0,t:m.co2.t,st:m.co2.st,dom:[400,2000],th:[1000,1500],tl:['1000','1500'],
+fn:function(x,i,f){return 400+(co2-400)*(.45+.55*x)+40*(ri+1)*Math.sin(i*f);}},ri,p,hv,self),
+chart({off:true,name:'eCO₂ · ENS160',unit:'ppm'},ri,p,hv,self),
+chart({cls:'c6 tl',name:'Температура · AHT21',unit:'°C',end:22.4,dec:1,t:tt[0].t,st:tt[0].st,dom:[16,28],th:[20,24],tl:['20°','24°'],
+fn:function(x,i,f){return 22.4+.6*Math.sin(i*f)-.5*(1-x);}},ri,p,hv,self),
+chart({cls:'c6 tl',name:'Влажность · AHT21',unit:'%',end:hum,dec:0,t:tt[1].t,st:tt[1].st,dom:[20,80],th:[40,60],tl:['40%','60%'],
+fn:function(x,i,f){return hum+4*(1-x)+2*Math.sin(i*f*.8);}},ri,p,hv,self),
+chart({cls:'c6 tl',name:'TVOC · ENS160',unit:'ppb',end:140,dec:0,t:tt[2].t,st:tt[2].st,dom:[0,800],th:[220,660],tl:['220','660'],
+fn:function(x,i,f){return Math.max(20,140+60*Math.sin(i*f)+50*(1-x));}},ri,p,hv,self),
+chart({cls:'c6 tl',name:'AQI · ENS160',unit:'из 5',end:2,dec:0,t:tt[3].t,st:tt[3].st,dom:[1,5],th:[2.5,3.5],tl:['3','4'],
+fn:function(x,i,f){return Math.round(2+.8*Math.sin(i*f*.5));}},ri,p,hv,self)];
+}
+var DUR=500; // длительность раскрытия, мс — совпадает с transition в .sheet
+var SPIN=250; // поворот шестерёнки перед раскрытием, мс (по умолчанию; в макете меняется ползунком)
+class Component extends DCLogic {
+openSheet(kind,e) {
+var self=this,el=e.currentTarget;
+if(this.state&&(this.state.sh||this.state.spin))return;
+var r={t:el.offsetTop,l:el.offsetLeft,w:el.offsetWidth,h:el.offsetHeight};
+function grow(){
+// 1) лист появляется ровно на месте плитки
+self.setState({sh:'start',kind:kind,r:r},function(){
+// 2) в следующем кадре растягивается на всю сетку
+requestAnimationFrame(function(){requestAnimationFrame(function(){self.setState({sh:'grow'});});});
+// 3) после растяжения показываем содержимое
+clearTimeout(self._t);self._t=setTimeout(function(){self.setState({sh:'open'});},DUR);
+});}
+clearTimeout(this._t);
+var spinMs=this.state&&this.state.spinMs!=null?this.state.spinMs:SPIN;
+// 0) иконка сначала делает оборот: шестерёнка — пол-оборота, линия графика — полный
+this.setState({spin:true,spinKind:kind});this._t=setTimeout(grow,spinMs);
+}
+closeSheet() {
+var self=this;
+if(!this.state||this.state.sh!=='open')return;
+// 1) прячем содержимое, 2) сжимаем обратно в плитку, 3) убираем лист
+this.setState({sh:'fade'});
+clearTimeout(this._t);
+this._t=setTimeout(function(){self.setState({sh:'shrink',spin:false});self._t=setTimeout(function(){self.setState({sh:null});},DUR);},200);
+}
+componentWillUnmount(){clearTimeout(this._t);}
+renderVals() {
+var s=this.state||{},self=this;
+var theme=s.theme||this.props.theme||'dark',p=P[theme]||P.dark;
+var co2=s.co2!=null?s.co2:1180,hum=s.hum!=null?s.hum:38,led=s.led||'auto',m=model(co2,hum),ri=s.rng!=null?s.rng:1;
+var ca=mix(p.z,m.co2.t);
+// RSSI → палочки: ≥−55 — 4, ≥−67 — 3, ≥−75 — 2, ≥−85 — 1, иначе 0
+var rssi=s.rssi!=null?s.rssi:-58,bars=rssi>=-55?4:rssi>=-67?3:rssi>=-75?2:rssi>=-85?1:0;
+var manColor=s.manColor||'#50a0ff',rspd=s.rspd!=null?s.rspd:12;
+var ledBg=led==='auto'?mix(LED,m.tco2):led==='man'?manColor:'conic-gradient(#ff4d4d, #ffd24d, #4dff88, #4dd2ff, #9a4dff, #ff4d4d)';
+// геометрия листа настроек
+var shs=s.sh||null,r=s.r||{t:0,l:0,w:0,h:0},small=(shs==='start'||shs==='shrink');
+var kind=s.kind||'set';
+var sh={cls:shs||'',top:small?r.t+'px':'0px',left:small?r.l+'px':'0px',w:small?r.w+'px':'100%',h:small?r.h+'px':'100%',gw:r.w+'px',gh:r.h+'px',
+title:kind==='gr'?'Графики':'Настройки',cap:kind==='gr'?'все датчики и климат':'WiFi, пороги, OTA'};
+// настройки: пороги, wifi, поправки
+var tv=s.thr||{},font=s.font!=null?s.font:0,exp=s.exp||'day',wifiOpen=!!s.wifiOpen;
+var toff=s.toff!=null?s.toff:0,hoff=s.hoff!=null?s.hoff:0,co2al=s.co2al!=null?s.co2al:1500;
+var thr=THR.map(function(row){
+var f=row.f.map(function(x,i){var key=row.id+i,v=tv[key]!=null?tv[key]:x[1];
+return {label:x[0],v:v,show:true,on:function(e){var n=Object.assign({},self.state&&self.state.thr||{});n[key]=e.target.value;self.setState({thr:n});}};});
+while(f.length<4)f.push({label:'',v:'',show:false,on:null});
+return {name:row.name,note:row.note,f:f};});
+return {theme:theme,score:m.score,face:m.face,emo:m.emo,hint:m.hint,mainAcc:mix(p.z,m.ts),mk:m.score+'%',
+co2:Object.assign({val:m.co2.val,st:m.co2.st,line:m.co2.line,area:m.co2.area,mn:m.co2.mn,mx:m.co2.mx,acc:ca},
+hover('main',m.co2.pts,180,function(v){return 150-clamp((v-400)/1600)*140;},0,'ppm',s.hv,self)),
+tiles:m.tiles.map(function(x){var a=x.off?p.mu:mix(p.z,x.t);
+// спарклайн: 12 точек за 3 часа, та же нормировка, что в spark()
+var h=x.pts?hover('t-'+x.id,x.pts,180,function(v){var mn=Math.min.apply(null,x.pts),mx=Math.max.apply(null,x.pts),r=(mx-mn)||1;return 27-(v-mn)/r*24;},x.dec,x.unit,s.hv,self,30,22):{};
+return {onMove:h.onMove,onLeave:h.onLeave,hShow:!!h.hShow,hx:h.hx,hy:h.hy,tx:h.tx,hv:h.hv,ht:h.ht,name:x.name,unit:x.unit,val:x.val,st:x.st,spark:x.spark,hasSpark:x.hasSpark,
+cls:x.cls+' tl sm'+(x.off?' off':''),acc:a,vc:x.off?'var(--mu)':a,bw:x.off?'0%':Math.round(8+x.t*92)+'%'};}),
+ledBg:ledBg,ledName:led==='auto'?'Авто':led==='man'?'Свой цвет':'Радуга',
+ledSub:led==='auto'?'цвет следует за CO₂ · яркость 80%':led==='man'?manColor.toUpperCase()+' · яркость 80%':'скорость '+rspd+' · яркость 80%',
+isMan:led==='man',isRnb:led==='rnb',manColor:manColor,rspd:rspd,
+swatches:SW.map(function(w){return {c:w[0],name:w[1],cls:manColor.toLowerCase()===w[0]?'on':'',pick:function(){self.setState({manColor:w[0]});}};}),
+onMan:function(e){self.setState({manColor:e.target.value});},onRspd:function(e){self.setState({rspd:+e.target.value});},
+ledA:led==='auto'?'on':'',ledM:led==='man'?'on':'',ledR:led==='rnb'?'on':'',
+setAuto:function(){self.setState({led:'auto'});},setMan:function(){self.setState({led:'man'});},setRnb:function(){self.setState({led:'rnb'});},
+toggleTheme:function(){self.setState({theme:theme==='dark'?'light':'dark'});},
+themeName:theme==='dark'?'Тёмная':'Светлая',
+ranges:RNG.map(function(x,i){return {label:x[1],cls:i===ri?'on':'',pick:function(){self.setState({rng:i});}};}),
+graphs:[
+{name:'CO₂',acc:ca,val:co2+' ppm',spark:spark(series(ri,co2,function(x,i,f){return 400+(co2-400)*(.45+.55*x)+60*(ri+1)*Math.sin(i*f);}))},
+{name:'Температура',acc:mix(p.z,0),val:'22.4 °C',spark:spark(series(ri,22.4,function(x,i,f){return 22.4+.6*Math.sin(i*f)-.4*(1-x);}))},
+{name:'Влажность',acc:mix(p.z,m.tiles[1].t),val:hum+' %',spark:spark(series(ri,hum,function(x,i,f){return hum+4*(1-x)+2*Math.sin(i*f*.8);}))}],
+// лист настроек
+shOn:!!shs,sh:sh,isSet:kind==='set',isGr:kind==='gr',
+setOpen:shs&&kind==='set'?'true':'false',grOpen:shs&&kind==='gr'?'true':'false',
+setCls:'c2 tl nav sqt gear'+(s.spin&&s.spinKind==='set'?' spin':'')+(shs&&kind==='set'?' hide':''),
+grCls:'c2 tl nav sqt grt'+(s.spin&&s.spinKind==='gr'?' spin':'')+(shs&&kind==='gr'?' hide':''),
+openSet:function(e){self.openSheet('set',e);},openGr:function(e){self.openSheet('gr',e);},closeSheet:function(){self.closeSheet();},
+charts:charts(ri,p,m,co2,hum,s.hv,self),
+thr:thr,resetThr:function(){self.setState({thr:{}});},
+wifiOpen:wifiOpen,wifiBtn:wifiOpen?'Скрыть список':'Сменить сеть',toggleWifi:function(){self.setState({wifiOpen:!wifiOpen});},
+nets:NETS.map(function(n){return {ssid:n.ssid,sec:n.sec,rssi:n.rssi,pick:function(){self.setState({ssid:n.ssid});}};}),
+ssid:s.ssid||'',onSsid:function(e){self.setState({ssid:e.target.value});},
+toff:toff,toffS:(toff>0?'+':'')+(+toff).toFixed(1)+'°',hoff:hoff,hoffS:(hoff>0?'+':'')+hoff+'%',co2al:co2al,
+onToff:function(e){self.setState({toff:+e.target.value});},onHoff:function(e){self.setState({hoff:+e.target.value});},onAl:function(e){self.setState({co2al:+e.target.value});},
+clkCls:'f'+font,f0:font===0?'on':'',f1:font===1?'on':'',setF0:function(){self.setState({font:0});},setF1:function(){self.setState({font:1});},
+exp:EXP.map(function(x){return {label:x[1],cls:exp===x[0]?'on':'',pick:function(){self.setState({exp:x[0]});}};}),
+expLabel:(EXP.filter(function(x){return x[0]===exp;})[0]||EXP[2])[1].toLowerCase(),
+co2v:co2,humv:hum,
+onCo2:function(e){self.setState({co2:+e.target.value});},
+onHum:function(e){self.setState({hum:+e.target.value});},
+spinMs:s.spinMs!=null?s.spinMs:SPIN,onSpin:function(e){self.setState({spinMs:+e.target.value});},
+rssi:rssi,onRssi:function(e){self.setState({rssi:+e.target.value});},
+wifiLbl:'WiFi: '+['нет сигнала','слабый','средний','хороший','отличный'][bars]+' ('+rssi+' dBm)',
+wb1:bars>=1?'on':'',wb2:bars>=2?'on':'',wb3:bars>=3?'on':'',wb4:bars>=4?'on':''};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>2+9 · A · Bento со смайликом</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#3a5bd9}a:hover{color:#2a45b0}
+.ab{box-sizing:border-box;padding:32px 40px;background:#dfe1e6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#17191d;display:flex;flex-direction:column;gap:22px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.vn{font-size:13px;font-weight:600;color:#474c55}
+.vt{font-size:24px;font-weight:700;margin-top:2px}
+.ctl{display:flex;flex-direction:column;gap:8px;width:400px}
+.sl{display:grid;grid-template-columns:84px 1fr 72px;align-items:center;gap:10px;font-size:13px}
+.sl label{font-weight:600}
+.sl input{width:100%;accent-color:#3a5bd9;margin:0;height:24px}
+.sv{text-align:right;font-variant-numeric:tabular-nums;color:#3d424b}
+.phones{display:flex;gap:40px}
+.col{display:flex;flex-direction:column;gap:10px}
+.cap{font-size:13px;font-weight:600;color:#474c55}
+/* ---- токены темы: переносить в проект ---- */
+.ph.dark{--bg:#0b0c0d;--sf:#141517;--tx:#ededee;--mu:#959aa1;--ln:#2a2c31;
+ --z0:#3ecf72;--z1:#e8c547;--z2:#f2913d;--z3:#f25a55}
+.ph.light{--bg:#ebebe8;--sf:#fafaf8;--tx:#121212;--mu:#5c5e63;--ln:#d2d2cd;
+ --z0:#18803f;--z1:#8a6800;--z2:#b4520b;--z3:#c42e2a}
+.ph{width:390px;height:844px;box-sizing:border-box;border-radius:44px;overflow:hidden;background:var(--bg);color:var(--tx);padding:22px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 0 8px #15171b,0 18px 40px rgba(0,0,0,.25)}
+.num{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:2px 2px 4px}
+.ttl{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:6px;margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+.dot{width:6px;height:6px;background:var(--z0)}
+.ic{width:44px;height:44px;border-radius:4px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.main{background:var(--sf);border:1px solid var(--ln);border-radius:4px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mhd{display:flex;justify-content:space-between;align-items:center}
+.lbl{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.1em}
+.mrow{display:flex;justify-content:space-between;align-items:center}
+.score{font-size:56px;font-weight:500;line-height:1}
+.score span{font-size:18px;color:var(--mu);margin-left:4px}
+.emo{font-size:44px;font-weight:700;letter-spacing:-.06em;line-height:1}
+.mst{font-size:14px}
+.mst b{font-weight:700}
+.scale{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;height:6px;margin-top:4px}
+.scale span{display:block}
+.s3{background:var(--z3)}.s2{background:var(--z2)}.s1{background:var(--z1)}.s0{background:var(--z0)}
+.mk{position:absolute;top:-5px;width:3px;height:16px;background:var(--tx);margin-left:-1px;box-shadow:0 0 0 2px var(--sf)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:126px;gap:8px}
+.tl{position:relative;overflow:hidden;background:var(--sf);border:1px solid var(--ln);border-radius:4px;padding:14px 14px 12px;display:flex;flex-direction:column;box-sizing:border-box;min-width:0}
+.stripe{position:absolute;left:0;top:0;right:0;height:3px}
+.tall{grid-row:span 2}
+.tname{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.1em}
+.tval{font-size:28px;font-weight:500;line-height:1.1;margin-top:8px}
+.tall .tval{font-size:42px}
+.tu{font-size:12px;color:var(--mu);margin-left:5px;font-family:system-ui,sans-serif;letter-spacing:0}
+.spk{display:block;width:100%;height:18px;margin-top:6px}
+.tall .spk{height:84px;margin-top:16px}
+.spk polyline{fill:none;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.tst{font-size:12px;font-weight:600;margin-top:auto;display:flex;align-items:center;gap:6px}
+.sq{width:8px;height:8px;flex:none}
+.meter{height:3px;background:var(--ln);margin-top:6px}
+.meter span{display:block;height:3px}
+.off{background:transparent;border-style:dashed}
+.off .tval,.off .tst{color:var(--mu)}
+.ledrow{display:flex;align-items:center;gap:10px;margin-top:auto}
+.sw{width:28px;height:28px;flex:none;border-radius:2px}
+.lm{font-size:15px;font-weight:600}
+.ls{font-size:12px;color:var(--mu)}
+</style>
+</helmet>
+<div class="ab" style="width: 900px; height: 1060px">
+<div class="top">
+<div><div class="vn">2 + 9 · A</div><div class="vt">Bento со смайликом из символов</div></div>
+<div class="ctl">
+<div class="sl"><label for="c11">CO₂</label><input id="c11" type="range" min="400" max="2500" step="10" value="{{co2}}" onChange="{{onCo2}}"><span class="sv">{{co2}} ppm</span></div>
+<div class="sl"><label for="h11">Влажность</label><input id="h11" type="range" min="20" max="80" step="1" value="{{hum}}" onChange="{{onHum}}"><span class="sv">{{hum}} %</span></div>
+</div>
+</div>
+<div class="phones">
+<sc-for list="{{phones}}" as="p" hint-placeholder-count="2">
+<div class="col">
+<div class="cap">{{p.label}} тема</div>
+<div class="ph {{p.theme}}">
+<div class="hdr">
+<div><div class="ttl">Метеостанция</div><div class="sub"><span class="dot"></span>онлайн · −58 dBm</div></div>
+<button class="ic" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+</div>
+<div class="main">
+<div class="mhd"><span class="lbl">Климат в комнате</span><span class="lbl" style="color: {{p.mainAcc}}">{{p.face}}</span></div>
+<div class="mrow"><div class="score num" style="color: {{p.mainAcc}}">{{p.score}}<span>/100</span></div><div class="emo num" style="color: {{p.mainAcc}}">{{p.emo}}</div></div>
+<div class="mst">{{p.hint}}</div>
+<div class="scale"><span class="s3"></span><span class="s2"></span><span class="s1"></span><span class="s0"></span><span class="mk" style="left: {{p.mk}}"></span></div>
+</div>
+<div class="grid">
+<sc-for list="{{p.tiles}}" as="it" hint-placeholder-count="6">
+<div class="{{it.cls}}">
+<div class="stripe" style="background: {{it.acc}}"></div>
+<div class="tname">{{it.name}}</div>
+<div class="tval num" style="color: {{it.vc}}">{{it.val}}<span class="tu">{{it.unit}}</span></div>
+<sc-if value="{{it.hasSpark}}" hint-placeholder-val="{{ false }}"><svg class="spk" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true" style="color: {{it.acc}}"><polyline points="{{it.spark}}"></polyline></svg></sc-if>
+<div class="tst"><span class="sq" style="background: {{it.acc}}"></span>{{it.st}}</div>
+<div class="meter"><span style="width: {{it.bw}}; background: {{it.acc}}"></span></div>
+</div>
+</sc-for>
+<div class="tl">
+<div class="tname">Подсветка</div>
+<div class="ledrow"><span class="sw" style="background: {{p.led}}"></span><div><div class="lm">Авто</div><div class="ls">по CO₂ · 80%</div></div></div>
+</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":1060}}'>
+function pw(v,s){if(v<=s[0][0])return s[0][1];for(var i=1;i<s.length;i++){if(v<=s[i][0]){var a=s[i-1],b=s[i];return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0]);}}return s[s.length-1][1];}
+function hx(h){return [1,3,5].map(function(i){return parseInt(h.substr(i,2),16);});}
+function mix(st,t){t=Math.max(0,Math.min(1,t));var n=st.length-1,f=t*n,i=Math.min(n-1,Math.floor(f)),u=f-i,a=hx(st[i]),b=hx(st[i+1]);return 'rgb('+a.map(function(x,k){return Math.round(x+(b[k]-x)*u);}).join(',')+')';}
+function spark(a){var mn=Math.min.apply(null,a),mx=Math.max.apply(null,a),r=(mx-mn)||1;return a.map(function(v,i){return (i*100/(a.length-1)).toFixed(1)+','+(27-(v-mn)/r*24).toFixed(1);}).join(' ');}
+function model(co2,hum){
+var temp=22.4,tvoc=140,aqi=2;
+var t={co2:pw(co2,[[600,0],[800,.25],[1000,.45],[1500,.75],[2000,1]]),
+hum:Math.min(1,(hum<40?40-hum:hum>60?hum-60:0)/20),
+temp:Math.min(1,(temp<20?20-temp:temp>24?temp-24:0)/4),
+tvoc:pw(tvoc,[[0,0],[220,.25],[660,.5],[2200,1]]),
+aqi:pw(aqi,[[1,0],[2,.15],[3,.5],[4,.8],[5,1]])};
+var W={co2:.45,hum:.2,temp:.2,tvoc:.1,aqi:.05},s=0,mx=0,worst='co2';
+for(var k in W){s+=W[k]*t[k];if(t[k]>mx){mx=t[k];worst=k;}}
+var score=Math.max(0,Math.round(Math.min(100*(1-s),100-80*mx)));
+var face=score>=85?'Отлично':score>=70?'Хорошо':score>=50?'Так себе':score>=30?'Плохо':'Очень плохо';
+var emo=score>=85?'(^-^)':score>=70?'(^_^)':score>=50?'(-_-)':score>=30?'(>_<)':'(x_x)';
+var hint='Воздух в порядке';
+if(mx>=.2){if(worst==='co2')hint=co2>=1500?'Очень душно — срочно проветрите':'Душновато — проветрите';else if(worst==='hum')hint=hum<40?'Сухо — включите увлажнитель':'Сыро — проветрите';else if(worst==='tvoc')hint='Много летучих веществ — проветрите';}
+var sh=[.52,.54,.59,.64,.69,.75,.8,.86,.9,.93,.97,1];
+var co2h=sh.map(function(x){return 400+(co2-400)*x;});
+var th=[21.6,21.7,21.7,21.9,22.0,22.1,22.0,22.2,22.3,22.3,22.4,22.4];
+var tiles=[
+{id:'co2',name:'CO₂',unit:'ppm',val:String(co2),t:t.co2,st:co2<800?'Отлично':co2<1000?'Норма':co2<1500?'Повышен':'Плохо',spark:spark(co2h),hasSpark:true},
+{id:'temp',name:'Температура',unit:'°C',val:temp.toFixed(1),t:t.temp,st:'Комфорт',spark:spark(th),hasSpark:true},
+{id:'hum',name:'Влажность',unit:'%',val:String(hum),t:t.hum,st:hum<30?'Сухо':hum<40?'Суховато':hum<=60?'Комфорт':hum<=70?'Влажновато':'Сыро',hasSpark:false,spark:''},
+{id:'tvoc',name:'TVOC',unit:'ppb',val:'140',t:t.tvoc,st:'Хорошо',hasSpark:false,spark:''},
+{id:'aqi',name:'AQI',unit:'из 5',val:'2',t:t.aqi,st:'Хорошо',hasSpark:false,spark:''},
+{id:'eco2',name:'eCO₂',unit:'ppm',val:'--',t:0,st:'Датчик недоступен',off:true,hasSpark:false,spark:''}];
+return {score:score,face:face,emo:emo,hint:hint,ts:Math.max(0,Math.min(1,(90-score)/70)),tco2:t.co2,tiles:tiles};
+}
+// цвета зон дублируют переменные --z0..--z3 из CSS
+var P={dark:{z:['#3ecf72','#e8c547','#f2913d','#f25a55'],mu:'#5d6168'},
+light:{z:['#18803f','#8a6800','#b4520b','#c42e2a'],mu:'#a3a5a8'}};
+var LED=['#22c55e','#eab308','#f97316','#ef4444'];
+function skin(th,m){var p=P[th];
+return {theme:th,label:th==='dark'?'Тёмная':'Светлая',score:m.score,face:m.face,emo:m.emo,hint:m.hint,
+mainAcc:mix(p.z,m.ts),mk:m.score+'%',led:mix(LED,m.tco2),
+tiles:m.tiles.map(function(x){var a=x.off?p.mu:mix(p.z,x.t);return {name:x.name,unit:x.unit,val:x.val,st:x.st,spark:x.spark,hasSpark:x.hasSpark,
+cls:x.off?'tl off':x.id==='co2'?'tl tall':'tl',acc:a,vc:x.off?'var(--mu)':a,bw:x.off?'0%':Math.round(8+x.t*92)+'%'};})};}
+class Component extends DCLogic {
+renderVals() {
+var s=this.state||{},self=this;
+var co2=s.co2!=null?s.co2:1180,hum=s.hum!=null?s.hum:38,m=model(co2,hum);
+return {co2:co2,hum:hum,
+onCo2:function(e){self.setState({co2:+e.target.value});},
+onHum:function(e){self.setState({hum:+e.target.value});},
+phones:[skin('dark',m),skin('light',m)]};
+}
+}
+</script>
+</body>
+</html>
